@@ -1,6 +1,6 @@
 from config import DB_PROFILES_DB
 
-from prints import print_error
+from functions import print_error
 
 from aiosqlite import connect
 
@@ -15,30 +15,14 @@ async def read_by_user_id(user_id: int):
     '''
     try:
         async with connect(DB_PROFILES_DB) as db:
-            async with db.execute("SELECT * FROM nicknames WHERE user_id = ?", (user_id,)) as cursor:
+            async with db.execute("SELECT * FROM roleplays WHERE user_id = ?", (user_id,)) as cursor:
                 user_data = await cursor.fetchone()
                 return user_data
 
     except Exception as e:
-        await print_error(f"databases/players/nicknames.py: read_by_user_id(): {e}.")
+        await print_error(f"databases/profiles/roleplays.py: read_by_user_id(): {e}.")
         return None
 
-async def read_by_minecraft_nickname(minecraft_nickname: str):
-    '''
-    Чтение всех данных человека, по его никнейму в майнкрафте.  
-    Возвращает в виде списка `user_data`.  
-    Если данных нет, — возвращает `None`.
-    '''
-    try:
-        async with connect(DB_PROFILES_DB) as db:
-            async with db.execute("SELECT * FROM nicknames WHERE minecraft_nickname = ?", (minecraft_nickname,)) as cursor:
-                user_data = await cursor.fetchone()
-                return user_data
-
-    except Exception as e:
-        await print_error(f"databases/players/nicknames.py: read_by_minecraft_nickname(): {e}.")
-        return None
-    
 async def read_users():
     '''
     Чтение данных всех людей.  
@@ -47,29 +31,101 @@ async def read_users():
     '''
     try:
         async with connect(DB_PROFILES_DB) as db:
-            async with db.execute("SELECT * FROM nicknames") as cursor:
+            async with db.execute("SELECT * FROM roleplays") as cursor:
                 users_data = await cursor.fetchall()
                 return users_data
 
     except Exception as e:
-        await print_error(f"databases/players/nicknames.py: read_users(): {e}.")
+        await print_error(f"databases/profiles/roleplays.py: read_users(): {e}.")
+        return None
+
+
+async def read_by_is_prisoner(is_prisoner: int):
+    '''
+    Чтение всех `user_id`, у которых is_prisoner равен искомому.  
+    Возвращает в виде списка `users_id`.  
+    Если данных нет, — возвращает `None`.
+    '''
+    try:
+        async with connect(DB_PROFILES_DB) as db:
+            async with db.execute("SELECT user_id FROM roleplays WHERE is_prisoner = ?", (is_prisoner,)) as cursor:
+                users_id = await cursor.fetchone()
+                return users_id
+
+    except Exception as e:
+        await print_error(f"databases/profiles/roleplays.py: read_by_is_prisoner(): {e}.")
+        return None
+
+async def read_by_party_membership(party_membership: str):
+    '''
+    Чтение всех `user_id`, у которых party_membership равен искомому.  
+    Возвращает в виде списка `users_id`.  
+    Если данных нет, — возвращает `None`.
+    '''
+    try:
+        async with connect(DB_PROFILES_DB) as db:
+            async with db.execute("SELECT user_id FROM roleplays WHERE party_membership = ?", (party_membership,)) as cursor:
+                users_id = await cursor.fetchone()
+                return users_id
+
+    except Exception as e:
+        await print_error(f"databases/profiles/roleplays.py: read_by_party_membership(): {e}.")
         return None
 
 
 # U
-async def change_minecraft_nickname(user_id: int, minecraft_nickname: str) -> None:
-    '''Обновление майнкрафт никнейма *(если человек его изменил)*.'''
-    user_data = await read_by_user_id(user_id)
-    nickname_changes_count = user_data[3] + 1
-
+async def update_is_prisoner(user_id: int, is_prisoner: int) -> None:
+    '''Обновление статуса заключения.'''
     try:
         async with connect(DB_PROFILES_DB) as db:
             await db.execute("""
-                UPDATE nicknames 
-                SET minecraft_nickname = ?, nickname_changes_count = ?
+                UPDATE roleplays
+                SET is_prisoner = ?
                 WHERE user_id = ?
-            """, (minecraft_nickname, nickname_changes_count, user_id))
+            """, (is_prisoner, user_id))
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/players/nicknames.py: change_minecraft_nickname(): {e}.")
+        await print_error(f"databases/profiles/roleplays.py: update_is_prisoner(): {e}.")
+
+async def update_is_rebel(user_id: int, is_rebel: int) -> None:
+    '''Обновление статуса мятежника.'''
+    try:
+        async with connect(DB_PROFILES_DB) as db:
+            await db.execute("""
+                UPDATE roleplays
+                SET is_rebel = ?
+                WHERE user_id = ?
+            """, (is_rebel, user_id))
+            await db.commit()
+
+    except Exception as e:
+        await print_error(f"databases/profiles/roleplays.py: update_is_rebel(): {e}.")
+
+async def update_is_military(user_id: int, is_military: int) -> None:
+    '''Обновление статуса военного.'''
+    try:
+        async with connect(DB_PROFILES_DB) as db:
+            await db.execute("""
+                UPDATE roleplays
+                SET is_military = ?
+                WHERE user_id = ?
+            """, (is_military, user_id))
+            await db.commit()
+
+    except Exception as e:
+        await print_error(f"databases/profiles/roleplays.py: update_is_military(): {e}.")
+
+async def update_party_membership(user_id: int, party_membership: str) -> None:
+    '''Обновление членства в партии.'''
+    try:
+        async with connect(DB_PROFILES_DB) as db:
+            await db.execute("""
+                UPDATE roleplays
+                SET party_membership = ?
+                WHERE user_id = ?
+            """, (party_membership, user_id))
+            await db.commit()
+
+    except Exception as e:
+        await print_error(f"databases/profiles/roleplays.py: update_party_membership(): {e}.")

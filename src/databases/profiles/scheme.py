@@ -3,11 +3,10 @@ from config import (
     DB_PROFILES_DB, DB_PROFILES_SQL
 )
 
-from prints import print_error
+from functions import print_error
 
 from aiosqlite import connect
 from datetime import datetime
-import os
 
 
 

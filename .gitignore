@@ -4,4 +4,5 @@ src/app/keyboards.py
 .venv
 .env
 
+*.db
 *pycache*

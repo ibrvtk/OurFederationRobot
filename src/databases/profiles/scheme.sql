@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS "roleplays" (
 );
 CREATE TABLE IF NOT EXISTS "donates" (
     "user_id" INTEGER PRIMARY KEY,
-    "balance" INTEGER NOT NULL DEFAULT 0,
+    "balance" INTEGER DEFAULT 0,
     "inventory" TEXT DEFAULT "None",
     "is_tradeban" INTEGER DEFAULT 0,
     "donate_count" INTEGER DEFAULT 0

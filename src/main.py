@@ -5,7 +5,7 @@ from config import (
     ADMINGROUP_ID
 )
 
-from prints import print_error, print_other
+from functions import print_error, print_other
 
 from app.handlers import rt as handlers_rt
 

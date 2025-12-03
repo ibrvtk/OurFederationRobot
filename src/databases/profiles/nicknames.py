@@ -1,6 +1,6 @@
 from config import DB_PROFILES_DB
 
-from prints import print_error
+from functions import print_error
 
 from aiosqlite import connect
 
@@ -20,7 +20,7 @@ async def read_by_user_id(user_id: int):
                 return user_data
 
     except Exception as e:
-        await print_error(f"databases/players/nicknames.py: read_by_user_id(): {e}.")
+        await print_error(f"databases/profiles/nicknames.py: read_by_user_id(): {e}.")
         return None
 
 async def read_by_user_username(user_username: str):
@@ -36,7 +36,7 @@ async def read_by_user_username(user_username: str):
                 return user_data
 
     except Exception as e:
-        await print_error(f"databases/players/nicknames.py: read_by_user_username(): {e}.")
+        await print_error(f"databases/profiles/nicknames.py: read_by_user_username(): {e}.")
         return None
 
 async def read_by_minecraft_nickname(minecraft_nickname: str):
@@ -52,9 +52,9 @@ async def read_by_minecraft_nickname(minecraft_nickname: str):
                 return user_data
 
     except Exception as e:
-        await print_error(f"databases/players/nicknames.py: read_by_minecraft_nickname(): {e}.")
+        await print_error(f"databases/profiles/nicknames.py: read_by_minecraft_nickname(): {e}.")
         return None
-    
+
 async def read_users():
     '''
     Чтение данных всех людей.  
@@ -68,24 +68,24 @@ async def read_users():
                 return users_data
 
     except Exception as e:
-        await print_error(f"databases/players/nicknames.py: read_users(): {e}.")
+        await print_error(f"databases/profiles/nicknames.py: read_users(): {e}.")
         return None
 
 
 # U
-async def change_minecraft_nickname(user_id: int, minecraft_nickname: str) -> None:
+async def update_minecraft_nickname(user_id: int, minecraft_nickname: str) -> None:
     '''Обновление майнкрафт никнейма *(если человек его изменил)*.'''
     user_data = await read_by_user_id(user_id)
-    nickname_changes_count = user_data[3] + 1
+    nickname_changes_count = user_data[4] + 1
 
     try:
         async with connect(DB_PROFILES_DB) as db:
             await db.execute("""
-                UPDATE nicknames 
+                UPDATE nicknames
                 SET minecraft_nickname = ?, nickname_changes_count = ?
                 WHERE user_id = ?
             """, (minecraft_nickname, nickname_changes_count, user_id))
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/players/nicknames.py: change_minecraft_nickname(): {e}.")
+        await print_error(f"databases/profiles/nicknames.py: update_minecraft_nickname(): {e}.")
