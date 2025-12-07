@@ -58,72 +58,82 @@ async def cmd_start(message: Message):
     )
 
 
-# @rt.message(F.text.lower().startswith(f"{FCMD_PREFIX}профиль"))
-# async def fcmd_profile(message: Message):
-#     '''
-#     Привязанный аккаунт, статистика, РП-информация *(статус в законе, партия и так далее)*.  
-#     **Исключение:** `*user*` может обозначать не только того, кто вызвал команду, но и цель (`target`).
-#     '''
-#     args = message.text.split(" ")
-#     user_id = message.from_user.id
+@rt.message(F.text.lower().startswith(f"{FCMD_PREFIX}профиль"))
+async def fcmd_profile(message: Message):
+    '''
+    Привязанный аккаунт, статистика, РП-информация *(статус в законе, партия и так далее)*.
+    '''
+    args = message.text.split(" ")
+    user_id = message.from_user.id
+    target_id = None
+    nicknames_data = None
+    roleplays_data = None
 
-#     if message.reply_to_message and len(args) == 1:
-#         # Если ответ на сообщение другого человека.
-#         user_id = message.reply_to_message.from_user.id
+    if len(args) == 1:
+        if message.reply_to_message:
+            # Посмотреть профиль другого человека, путём ответа на его сообщение командой.
+            target_id = message.reply_to_message.from_user.id
 
-#         nicknames_user_data = await profiles_nicknames_read_by_user_id(user_id)
-#         roleplays_user_data = await profiles_roleplays_read_by_user_id(user_id)
+            if await is_bot(target_id):
+                # Проверка: Если команда введена на бота.
+                await message.delete()
+                return
 
-#     elif len(args) == 1:
-#         # Свой профиль.
-#         nicknames_user_data = await profiles_nicknames_read_by_user_id(user_id)
-#         roleplays_user_data = await profiles_roleplays_read_by_user_id(user_id)
+    if len(args) == 2:
+        # Посмотреть профиль другого человека, путём ввода его @юзернейма/TG-ID/майнкрафт-никнейма после команды.
+        identifier = args[1]
+        if identifier.isdigit():
+            # TG-ID.
+            target_id = int(identifier)
+        else:
+            # @юзернейм либо майнкрафт-никнейм.
+            target_id = await get_user_id(identifier)
+            if target_id is None:
+                # Проверка: Удалось ли найти человека через БД (через функцию `get_user_id()`).
+                await message.reply(
+                    "❌ <b>Человек не найден.</b> Ни по @юзернейму, ни по майнкрафт-никнейму. "
+                    "Проверьте правильность введённых данных."
+                )
+                return
 
-#     elif len(args) == 2:
-#         # Если указан @юзернейм или TG-ID.
-#         if args[1].startswith("@"):
-#             user_username = args[1].replace("@", "")
-#             nicknames_user_data = await profiles_nicknames_read_by_user_username(user_username)
-#             user_id = int(nicknames_user_data[0])
-#             roleplays_user_data = await profiles_roleplays_read_by_user_id(user_id)
-#         else:
-#             try:
-#                 user_id = int(args[1])
-#                 nicknames_user_data = await profiles_nicknames_read_by_user_id(user_id)
-#                 roleplays_user_data = await profiles_roleplays_read_by_user_id(user_id)
-#             except ValueError:
-#                 await message.reply("❌ <b>Ошибка.</b> Неккоректный TG-ID.")
-#                 return
+    elif len(args) > 2:
+        # Ни один из вариантов.
+        await message.delete()
+        return
 
-#     else:
-#         # Ниодин из вариантов.
-#         await message.reply("❌ <b>Ошибка.</b> Неверный ввод команды.")
-#         return
-    
-#     user_user = await get_user_user(user_id)
+    if user_id == target_id:
+        # Проверка: Если команда введена на самого себя.
+        await message.delete()
+        return
 
-#     if not nicknames_user_data:
-#         await message.reply(f"👻 <b>{user_user} не игрок.</b>")
-#         return
-    
-#     # Вывод.
-#     registration_date = datetime.fromtimestamp(nicknames_user_data[3]).strftime("%d.%m.%Y %H:%M")
-#     is_prisoner = "Нет" if roleplays_user_data[1] == 0 else "Да"
-#     is_rebel = "Нет" if roleplays_user_data[2] == 0 else "Да"
-#     is_military = "Нет" if roleplays_user_data[3] == 0 else "Да"
-#     party_membership = "Нигде не состоит" if roleplays_user_data[4] == "None" else f"{roleplays_user_data[4]}"
+    if target_id is not None:
+        user_id = target_id
 
-#     text = (
-#         f"ℹ <b>Инфа {user_user}</b>\n\n"
-#         f"🔖 <b>Майнкрафт-никнейм:</b> {nicknames_user_data[2]}\n"
-#         f"🗓️ <b>Дата регистрации на сервере:</b> {registration_date}\n\n"
-#         f"⛓ <b>Заключённый</b>: {is_prisoner}\n"
-#         f"✊ <b>Восставший</b>: {is_rebel}\n"
-#         f"🪖 <b>Военный</b>: {is_military}\n"
-#         f"🪪 <b>Членство в партии</b>: {party_membership}\n"
-#     )
+    nicknames_data = await profiles_nicknames_read_by_user_id(user_id)
+    roleplays_data = await profiles_roleplays_read_by_user_id(user_id)
+    user_user = await get_user_user(user_id)
 
-#     await message.reply(text)
+    if not nicknames_data:
+        await message.reply(f"👻 <b>{user_user} не игрок.</b>")
+        return
+
+    # Вывод.
+    minecraft_nickname = nicknames_data[2]
+    registration_date = datetime.fromtimestamp(nicknames_data[3]).strftime("%d.%m.%Y %H:%M")
+    is_prisoner = "Нет" if roleplays_data[1] == 0 else "Да"
+    is_rebel = "Нет" if roleplays_data[2] == 0 else "Да"
+    is_military = "Нет" if roleplays_data[3] == 0 else "Да"
+    party_membership = "Нигде не состоит" if roleplays_data[4] == "None" else f"{roleplays_data[4]}"
+
+    await message.reply(
+        f"ℹ <b>Инфа {user_user}</b>\n\n"
+        f"🔖 <b>Майнкрафт-никнейм:</b> {minecraft_nickname}\n"
+        f"🗓️ <b>Дата регистрации на сервере:</b> {registration_date}\n\n"
+        f"⛓ <b>Заключённый</b>: {is_prisoner}\n"
+        f"✊ <b>Восставший</b>: {is_rebel}\n"
+        f"🪖 <b>Военный</b>: {is_military}\n"
+        f"🪪 <b>Членство в партии</b>: {party_membership}\n"
+    )
 
 
 @rt.message(F.text.lower().startswith(f"{FCMD_PREFIX}жалоба"))
@@ -134,10 +144,7 @@ async def fcmd_report(message: Message):
     for i in paragraphs:
         words = i.split(" ")
         args.append(words)
-
     user_id = message.from_user.id
-    user_user = await get_user_user(user_id)
-
     target_id = None
     report_comment = None
 
@@ -156,7 +163,7 @@ async def fcmd_report(message: Message):
         target_id = message.reply_to_message.from_user.id
 
         if await is_bot(target_id):
-            # Проверка: Если человек подаёт жалобу на бота.
+            # Проверка: Если команда введена на бота.
             await message.delete()
             return
 
@@ -175,11 +182,13 @@ async def fcmd_report(message: Message):
         
         identifier = args[0][1]
         if identifier.isdigit():
+            # TG-ID.
             target_id = int(identifier)
         else:
+            # @юзернейм либо майнкрафт-никнейм.
             target_id = await get_user_id(identifier)
-
             if target_id is None:
+                # Проверка: Удалось ли найти человека через БД (через функцию `get_user_id()`).
                 await message.reply(
                     "❌ <b>Человек не найден.</b> Ни по @юзернейму, ни по майнкрафт-никнейму. "
                     "Проверьте правильность введённых данных."
@@ -194,11 +203,12 @@ async def fcmd_report(message: Message):
         return
 
     if user_id == target_id:
-        # Проверка: Если человек подаёт жалобу на самого себя.
+        # Проверка: Если команда введена на самого себя.
         await message.delete()
         return
 
     # Вывод.
+    user_user = await get_user_user(user_id)
     target_user = await get_user_user(target_id)
     text_reply = (
         f"❗️ Жалоба на {target_user} отправлена\n"
