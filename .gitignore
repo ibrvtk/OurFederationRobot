@@ -1,5 +1,8 @@
+src/functions/enigma.py
+
 .venv
 .env
+*pycache*
+testing/
 
 *.db
-*pycache*

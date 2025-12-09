@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.types import Message
 from aiogram.filters import Command
+from aiogram.exceptions import TelegramBadRequest
 
 from config import (
     BOT, FCMD_PREFIX,
@@ -8,23 +9,20 @@ from config import (
     ADMINGROUP_ID
 )
 from functions import (
-    print_error,# print_other,
+    print_error,
     get_user_id, get_user_user, is_bot
 )
 
+from app.dicts import (
+    report_data, report_dataclass
+)
 from app.keyboards import (
     keyboard_report_admingroup as report_admingroup,
     keyboard_report_maingroup as report_maingroup
 )
 
-from databases.profiles.nicknames import (
-    read_by_user_id as profiles_nicknames_read_by_user_id,
-    read_by_user_username as profiles_nicknames_read_by_user_username,
-    read_by_minecraft_nickname as profiles_nicknames_read_by_minecraft_nickname
-)
-from databases.profiles.roleplays import (
-    read_by_user_id as profiles_roleplays_read_by_user_id
-)
+from databases.profiles.nicknames import read_by_user_id as profiles_nicknames_read_by_user_id
+from databases.profiles.roleplays import read_by_user_id as profiles_roleplays_read_by_user_id
 
 from datetime import datetime
 
@@ -44,7 +42,7 @@ async def fcmd_check(message: Message):
     '''Проверка работоспособности бота и связи с телеграмом.'''
     try:
         await message.reply("✅ На месте")
-    except Exception as e:
+    except TelegramBadRequest as e:
         await print_error(f"app/handlers.py: fcmd_check(): {e}.")
 
 
@@ -106,7 +104,7 @@ async def fcmd_profile(message: Message):
         await message.delete()
         return
 
-    if target_id is not None:
+    if target_id != 0:
         user_id = target_id
 
     nicknames_data = await profiles_nicknames_read_by_user_id(user_id)
@@ -146,14 +144,15 @@ async def fcmd_report(message: Message):
         args.append(words)
     user_id = message.from_user.id
     target_id = None
-    report_comment = None
+    report_reason = None
+    is_from_group = True
 
     if len(paragraphs) > 2:
         # Проверка: Если человек пишет лишние абзацы.
         await message.delete()
         return
 
-    if message.chat.type in ["group" ,"supergroup"]:
+    if message.chat.type in ["group", "supergroup"]:
         # Жалоба на сообщение (в группе).
         if not message.reply_to_message:
             # Проверка: Если человек просто написал команду, без цели.
@@ -168,7 +167,7 @@ async def fcmd_report(message: Message):
             return
 
         if len(paragraphs) == 2:
-            report_comment = paragraphs[1]
+            report_reason = paragraphs[1]
 
     elif message.chat.type == "private":
         # Жалоба на игрока (только в личке).
@@ -195,7 +194,8 @@ async def fcmd_report(message: Message):
                 )
                 return
         
-        report_comment = paragraphs[1]
+        report_reason = paragraphs[1]
+        is_from_group = False
 
     else:
         # Ни один из вариантов.
@@ -210,33 +210,61 @@ async def fcmd_report(message: Message):
     # Вывод.
     user_user = await get_user_user(user_id)
     target_user = await get_user_user(target_id)
-    text_reply = (
+
+    reply_text = (
         f"❗️ Жалоба на {target_user} отправлена\n"
         f"🆔 <code>{target_id}</code>\n"
         f"🗣 Отправил: {user_user}"
     )
-    text_send_message = (
+    send_message_text = (
         f"❗️ <b>Жалоба на {target_user}</b>\n"
         f"🆔 <code>{target_id}</code>\n"
         f"🗣 Отправил: {user_user}"
     )
 
-    if message.chat.type in ["group" ,"supergroup"]:
-        if report_comment is not None:
-            text_send_message = f"{text_send_message}\n💬 {report_comment}"
+    if message.chat.type in ["group", "supergroup"]:
+        if report_reason is not None:
+            send_message_text = f"{send_message_text}\n💬 {report_reason}"
 
     elif message.chat.type == "private":
-        text_reply = f"❗️ Жалоба на {target_user} отправлена"
-        text_send_message = f"{text_send_message}\n💬 {report_comment}"
+        reply_text = f"❗️ Жалоба на {target_user} отправлена"
+        send_message_text = f"{send_message_text}\n💬 {report_reason}"
 
-    await message.reply(
-        text=text_reply,
-        reply_markup=await report_maingroup(message) if message.chat.type in ["group" ,"supergroup"] else None
-        )
-    await BOT.send_message(
+    reply_message_obj = await message.reply(reply_text)
+    send_message_obj = await BOT.send_message(
         chat_id=ADMINGROUP_ID,
-        text=text_send_message,
-        reply_markup=await report_admingroup(message) if message.chat.type in ["group" ,"supergroup"] else await report_admingroup(message, False)
+        text=send_message_text
+        )
+
+    report_id = int(datetime.now().timestamp())
+    user_message_id = message.message_id
+    reply_message_id = reply_message_obj.message_id
+    send_message_id = send_message_obj.message_id
+    chat_id = message.chat.id
+    report_data[report_id] = report_dataclass(
+        report_id=report_id,
+        user_id=user_id,
+        target_id=target_id,
+        user_message_id=user_message_id,
+        target_message_id=message.reply_to_message.message_id,
+        reply_message_id=reply_message_id,
+        send_message_id=send_message_id,
+        report_reason=report_reason,
+        is_from_group=is_from_group,
+        chat_id=chat_id
+    )
+
+    await BOT.edit_message_text(
+        chat_id=chat_id,
+        message_id=reply_message_id,
+        text=reply_text,
+        reply_markup=await report_maingroup(report_id)
+    )
+    await BOT.edit_message_text(
+        chat_id=chat_id,
+        message_id=send_message_id,
+        text=send_message_text,
+        reply_markup=await report_admingroup(report_id)
     )
 
 @rt.message(Command('report'))
