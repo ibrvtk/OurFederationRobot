@@ -1,18 +1,17 @@
 from config import (
     BOT,
-    DB_PROFILES_DB, DB_PROFILES_SQL
+    DB_PLAYERS_DB, DB_PLAYERS_SQL
 )
-
 from functions import print_error
 
-from aiosqlite import connect
 from datetime import datetime
+from aiosqlite import connect
 
 
 
 async def create_database() -> None:
     '''
-    ## Создание БД `profiles`
+    ## Создание БД `players`
     Хранит в себе три таблицы: `nicknames`, `roleplays` и `donates`.
 
     ### `nicknames`
@@ -26,7 +25,8 @@ async def create_database() -> None:
     * `is_prisoner` — заключён ли в тюрьму;
     * `is_rebel` — восстал ли против **действующего** правительства;
     * `is_military` — является ли военным;
-    * `party_membership` — название партии, в котором оформлено членство.
+    * `party_membership` — название партии, в котором оформлено членство;
+    * `reputation` — репутация человека, которые ему выдают другие игроки.
 
     ### `donates`
     
@@ -36,14 +36,14 @@ async def create_database() -> None:
     * `donate_count` — сколько раз донатил *(пополнял баланс, покупал предметы и так далее)*.
     '''
     try:
-        async with connect(DB_PROFILES_DB) as db:
-            with open(DB_PROFILES_SQL, 'r', encoding='utf-8') as file:
+        async with connect(DB_PLAYERS_DB) as db:
+            with open(DB_PLAYERS_SQL, 'r', encoding='utf-8') as file:
                 sql_script = file.read()
             await db.executescript(sql_script)
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/profiles: createDatabase(): {e}.")
+        await print_error(f"databases/players: createDatabase(): {e}.")
 
 
 async def create_user(user_id: int, minecraft_nickname: str, registration_date: datetime) -> None:
@@ -51,17 +51,17 @@ async def create_user(user_id: int, minecraft_nickname: str, registration_date: 
     user = await BOT.get_chat(user_id)
 
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             await db.execute("""
                 INSERT OR IGNORE INTO nicknames 
-                (user_id, user_username, minecraft_nickname, registration_date, nickname_changes_count)
-                VALUES (?, ?, ?, ?, 0)
+                (user_id, user_username, minecraft_nickname, registration_date, nickname_changes_count, is_moderator)
+                VALUES (?, ?, ?, ?, 0, 0)
             """, (user_id, user.username, minecraft_nickname, registration_date,))
 
             await db.execute("""
                 INSERT OR IGNORE INTO roleplays 
-                (user_id, is_prisoner, is_rebel, is_military, party_membership)
-                VALUES (?, 0, 0, 0, 'None')
+                (user_id, is_prisoner, is_rebel, is_military, party_membership, reputation)
+                VALUES (?, 0, 0, 0, 'None', 'None')
             """, (user_id,))
 
             await db.execute("""
@@ -78,7 +78,7 @@ async def create_user(user_id: int, minecraft_nickname: str, registration_date: 
 async def delete_user(user_id: int) -> None:
     '''Удаление человека из БД.'''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             await db.execute("DELETE FROM nicknames WHERE user_id = ?", (user_id,))
             await db.execute("DELETE FROM roleplays WHERE user_id = ?", (user_id,))
             await db.execute("DELETE FROM donates WHERE user_id = ?", (user_id,))

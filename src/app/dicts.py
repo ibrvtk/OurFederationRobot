@@ -3,10 +3,21 @@ from dataclasses import dataclass
 
 
 
+reputation_data = {}
+
+@dataclass
+class ReputationDataclass:
+    user_id: int
+    reputation_id: int
+    chat_id: int
+    profile_message_id: int
+    profile_message_text: str
+
+
 report_data = {}
 
 @dataclass
-class report_dataclass:
+class ReportDataclass:
     report_id: datetime
     user_id: int
     target_id: int

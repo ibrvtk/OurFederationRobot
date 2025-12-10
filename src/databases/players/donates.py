@@ -1,5 +1,4 @@
-from config import DB_PROFILES_DB
-
+from config import DB_PLAYERS_DB
 from functions import print_error
 
 from aiosqlite import connect
@@ -14,13 +13,13 @@ async def read_by_user_id(user_id: int):
     Если данных нет, — возвращает `None`.
     '''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             async with db.execute("SELECT * FROM donates WHERE user_id = ?", (user_id,)) as cursor:
                 user_data = await cursor.fetchone()
                 return user_data
 
     except Exception as e:
-        await print_error(f"databases/profiles/donates.py: read_by_user_id(): {e}.")
+        await print_error(f"databases/players/donates.py: read_by_user_id(): {e}.")
         return None
 
 async def read_users():
@@ -30,13 +29,13 @@ async def read_users():
     Если данных нет, — возвращает `None`.
     '''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             async with db.execute("SELECT * FROM donates") as cursor:
                 users_data = await cursor.fetchall()
                 return users_data
 
     except Exception as e:
-        await print_error(f"databases/profiles/donates.py: read_users(): {e}.")
+        await print_error(f"databases/players/donates.py: read_users(): {e}.")
         return None
 
 
@@ -47,7 +46,7 @@ async def update_balance(user_id: int, balance: int) -> None:
     donate_count = user_data[4] + 1
 
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             await db.execute("""
                 UPDATE donates
                 SET balance = ?, donate_count = ?
@@ -56,12 +55,12 @@ async def update_balance(user_id: int, balance: int) -> None:
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/profiles/donates.py: update_balance(): {e}.")
+        await print_error(f"databases/players/donates.py: update_balance(): {e}.")
 
 async def update_inventory(user_id: int, inventory: str) -> None:
     '''Обновление инвентаря.'''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             await db.execute("""
                 UPDATE donates
                 SET inventory = ?
@@ -70,12 +69,12 @@ async def update_inventory(user_id: int, inventory: str) -> None:
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/profiles/donates.py: update_inventory(): {e}.")
+        await print_error(f"databases/players/donates.py: update_inventory(): {e}.")
 
 async def update_is_tradeban(user_id: int, is_tradeban: int) -> None:
     '''Обновление статуса блокировки торговли *(трейдбан)*.'''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             await db.execute("""
                 UPDATE donates
                 SET is_tradeban = ?
@@ -84,4 +83,4 @@ async def update_is_tradeban(user_id: int, is_tradeban: int) -> None:
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/profiles/donates.py: update_is_tradeban(): {e}.")
+        await print_error(f"databases/players/donates.py: update_is_tradeban(): {e}.")

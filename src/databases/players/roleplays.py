@@ -1,5 +1,4 @@
-from config import DB_PROFILES_DB
-
+from config import DB_PLAYERS_DB
 from functions import print_error
 
 from aiosqlite import connect
@@ -14,13 +13,13 @@ async def read_by_user_id(user_id: int):
     Если данных нет, — возвращает `None`.
     '''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             async with db.execute("SELECT * FROM roleplays WHERE user_id = ?", (user_id,)) as cursor:
                 user_data = await cursor.fetchone()
                 return user_data
 
     except Exception as e:
-        await print_error(f"databases/profiles/roleplays.py: read_by_user_id(): {e}.")
+        await print_error(f"databases/players/roleplays.py: read_by_user_id(): {e}.")
         return None
 
 async def read_users():
@@ -30,13 +29,13 @@ async def read_users():
     Если данных нет, — возвращает `None`.
     '''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             async with db.execute("SELECT * FROM roleplays") as cursor:
                 users_data = await cursor.fetchall()
                 return users_data
 
     except Exception as e:
-        await print_error(f"databases/profiles/roleplays.py: read_users(): {e}.")
+        await print_error(f"databases/players/roleplays.py: read_users(): {e}.")
         return None
 
 
@@ -47,13 +46,13 @@ async def read_by_is_prisoner(is_prisoner: int):
     Если данных нет, — возвращает `None`.
     '''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             async with db.execute("SELECT user_id FROM roleplays WHERE is_prisoner = ?", (is_prisoner,)) as cursor:
                 users_id = await cursor.fetchone()
                 return users_id
 
     except Exception as e:
-        await print_error(f"databases/profiles/roleplays.py: read_by_is_prisoner(): {e}.")
+        await print_error(f"databases/players/roleplays.py: read_by_is_prisoner(): {e}.")
         return None
 
 async def read_by_party_membership(party_membership: str):
@@ -63,13 +62,13 @@ async def read_by_party_membership(party_membership: str):
     Если данных нет, — возвращает `None`.
     '''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             async with db.execute("SELECT user_id FROM roleplays WHERE party_membership = ?", (party_membership,)) as cursor:
                 users_id = await cursor.fetchone()
                 return users_id
 
     except Exception as e:
-        await print_error(f"databases/profiles/roleplays.py: read_by_party_membership(): {e}.")
+        await print_error(f"databases/players/roleplays.py: read_by_party_membership(): {e}.")
         return None
 
 
@@ -77,7 +76,7 @@ async def read_by_party_membership(party_membership: str):
 async def update_is_prisoner(user_id: int, is_prisoner: int) -> None:
     '''Обновление статуса заключения.'''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             await db.execute("""
                 UPDATE roleplays
                 SET is_prisoner = ?
@@ -86,12 +85,12 @@ async def update_is_prisoner(user_id: int, is_prisoner: int) -> None:
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/profiles/roleplays.py: update_is_prisoner(): {e}.")
+        await print_error(f"databases/players/roleplays.py: update_is_prisoner(): {e}.")
 
 async def update_is_rebel(user_id: int, is_rebel: int) -> None:
     '''Обновление статуса мятежника.'''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             await db.execute("""
                 UPDATE roleplays
                 SET is_rebel = ?
@@ -100,12 +99,12 @@ async def update_is_rebel(user_id: int, is_rebel: int) -> None:
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/profiles/roleplays.py: update_is_rebel(): {e}.")
+        await print_error(f"databases/players/roleplays.py: update_is_rebel(): {e}.")
 
 async def update_is_military(user_id: int, is_military: int) -> None:
     '''Обновление статуса военного.'''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             await db.execute("""
                 UPDATE roleplays
                 SET is_military = ?
@@ -114,12 +113,12 @@ async def update_is_military(user_id: int, is_military: int) -> None:
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/profiles/roleplays.py: update_is_military(): {e}.")
+        await print_error(f"databases/players/roleplays.py: update_is_military(): {e}.")
 
 async def update_party_membership(user_id: int, party_membership: str) -> None:
     '''Обновление членства в партии.'''
     try:
-        async with connect(DB_PROFILES_DB) as db:
+        async with connect(DB_PLAYERS_DB) as db:
             await db.execute("""
                 UPDATE roleplays
                 SET party_membership = ?
@@ -128,4 +127,18 @@ async def update_party_membership(user_id: int, party_membership: str) -> None:
             await db.commit()
 
     except Exception as e:
-        await print_error(f"databases/profiles/roleplays.py: update_party_membership(): {e}.")
+        await print_error(f"databases/players/roleplays.py: update_party_membership(): {e}.")
+
+async def update_reputation(user_id: int, reputation: str) -> None:
+    '''Обновление репутации.'''
+    try:
+        async with connect(DB_PLAYERS_DB) as db:
+            await db.execute("""
+                UPDATE roleplays
+                SET reputation = ?
+                WHERE user_id = ?
+            """, (reputation, user_id))
+            await db.commit()
+
+    except Exception as e:
+        await print_error(f"databases/players/roleplays.py: update_reputation(): {e}.")

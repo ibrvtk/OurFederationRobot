@@ -9,7 +9,7 @@ from functions import print_error, print_other
 from app.handlers import rt as handlers_rt
 from app.callbacks import rt as callbacks_rt
 
-from databases.profiles import create_database as profiles_create_database
+from databases.players import create_database as players_create_database
 
 from asyncio import run#, create_task
 from aiohttp import ClientSession
@@ -24,7 +24,7 @@ async def main() -> None:
     session = ClientSession()
 
     try:
-        await profiles_create_database()
+        await players_create_database()
         DP.include_router(handlers_rt)
         DP.include_router(callbacks_rt)
         await print_other("(i) Запуск бота: БД в порядке, роутеры подключены.")

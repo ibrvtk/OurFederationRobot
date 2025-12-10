@@ -4,14 +4,16 @@ CREATE TABLE IF NOT EXISTS "nicknames" (
     "user_username" TEXT DEFAULT "None",
     "minecraft_nickname" TEXT,
     "registration_date" INTEGER,
-    "nickname_changes_count" INTEGER DEFAULT 0
+    "nickname_changes_count" INTEGER DEFAULT 0,
+    "is_moderator" INTEGER DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS "roleplays" (
     "user_id" INTEGER PRIMARY KEY,
     "is_prisoner" INTEGER DEFAULT 0,
     "is_rebel" INTEGER DEFAULT 0,
     "is_military" INTEGER DEFAULT 0,
-    "party_membership" TEXT DEFAULT "None"
+    "party_membership" TEXT DEFAULT "None",
+    "reputation" TEXT DEFAULT "None"
 );
 CREATE TABLE IF NOT EXISTS "donates" (
     "user_id" INTEGER PRIMARY KEY,
