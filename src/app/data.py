@@ -1,9 +1,20 @@
+from aiogram.fsm.state import State, StatesGroup
+
 from datetime import datetime
 from dataclasses import dataclass
 
 
 
-reputation_data = {}
+class ProfileConnect(StatesGroup):
+    minecraft_nickname = State()
+
+@dataclass
+class ConnectDataclass:
+    user_id: int
+    minecraft_nickname: str
+
+connect_data = {}
+
 
 @dataclass
 class ReputationDataclass:
@@ -13,8 +24,8 @@ class ReputationDataclass:
     profile_message_id: int
     profile_message_text: str
 
+reputation_data = {}
 
-report_data = {}
 
 @dataclass
 class ReportDataclass:
@@ -28,3 +39,5 @@ class ReportDataclass:
     report_reason: str
     is_from_group: bool
     chat_id: int
+
+report_data = {}

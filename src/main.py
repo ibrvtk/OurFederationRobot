@@ -10,6 +10,7 @@ from app.handlers import rt as handlers_rt
 from app.callbacks import rt as callbacks_rt
 
 from databases.players import create_database as players_create_database
+from databases.connects import create_database as connects_create_database
 
 from asyncio import run#, create_task
 from aiohttp import ClientSession
@@ -25,9 +26,10 @@ async def main() -> None:
 
     try:
         await players_create_database()
+        await connects_create_database()
         DP.include_router(handlers_rt)
         DP.include_router(callbacks_rt)
-        await print_other("(i) Запуск бота: БД в порядке, роутеры подключены.")
+        await print_other("(i) Запуск бота: Все БД в порядке, роутеры подключены.")
 
         start_message = await BOT.send_message(
             chat_id=ADMINGROUP_ID,

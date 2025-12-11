@@ -5,23 +5,20 @@ from aiogram.exceptions import TelegramBadRequest
 
 from config import (
     BOT, FCMD_PREFIX,
-    SUPERADMINS_ID,
     ADMINGROUP_ID
 )
 from functions import (
     print_error,
-    get_user_id, get_user_user,
-    is_bot,
-    get_full_data
+    get_user_id, get_user_user, is_bot, get_full_data
 )
 
-from app.dicts import (
+from app.data import (
     reputation_data, ReputationDataclass,
     report_data, ReportDataclass
 )
 from app.keyboards import (
     kb_start_menu,
-    kb_profile_reputation,
+    kb_profile_connect, kb_profile_reputation,
     kb_report_admingroup, kb_report_maingroup
 )
 
@@ -30,12 +27,6 @@ from datetime import datetime
 
 rt = Router()
 
-
-
-@rt.message(F.from_user.id.in_(SUPERADMINS_ID), Command("daiop"))
-async def cmd_daiop(message: Message): # Временная команда. Добавляет человека в БД. Только для админов.
-    from databases.players import create_user as profiles_create_user
-    await profiles_create_user(message.from_user.id, "test", int(datetime.now().timestamp()))
 
 
 @rt.message(F.text.lower() == "бот")
@@ -142,7 +133,10 @@ async def cmd_profile(message: Message):
 
     if not user_data:
         user_user = await get_user_user(user_id)
-        await message.reply(f"👻 <b>{user_user} не игрок.</b>")
+        await message.reply(
+            text=f"👻 <b>{user_user} не игрок.</b>",
+            reply_markup=await kb_profile_connect(user_id) if message.chat.type == "private" else None
+            )
         return
 
     # Вывод.
@@ -156,7 +150,10 @@ async def cmd_profile(message: Message):
         f"🪪 <b>Членство в партии</b>: {user_data['roleplays']['party_membership']}\n"
     )
 
-    profile_message_obj = await message.reply(text=text)
+    profile_message_obj = await message.reply(text)
+
+    if message.chat.type == "private":
+        return
 
     reputation_id = int(datetime.now().timestamp())
     chat_id = message.chat.id
@@ -314,3 +311,11 @@ async def cmd_report(message: Message):
         text=send_message_text,
         reply_markup=await kb_report_admingroup(report_id)
     )
+
+
+# @rt.message(F.text.lower().startswith("донат"))
+# @rt.message(F.text.lower().startswith(f"{FCMD_PREFIX}донат"))
+# @rt.message(F.chat.type == "private", F.text == "🎩 Донат")
+# @rt.message(Command('donate'))
+# async def cmd_donate(message: Message):
+#     '''Донат-меню, управление балансом.'''

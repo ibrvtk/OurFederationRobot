@@ -2,12 +2,12 @@ from config import BOT
 from functions import print_error
 
 from databases.players.nicknames import (
-    read_by_user_id as players_nicknames_read_by_user_id,
-    read_by_user_username as players_nicknames_read_by_user_username,
-    read_by_minecraft_nickname as players_nicknames_read_by_minecraft_nickname
+    read_by_user_id as db_players_nicknames_read_by_user_id,
+    read_by_user_username as db_players_nicknames_read_by_user_username,
+    read_by_minecraft_nickname as db_players_nicknames_read_by_minecraft_nickname
 )
-from databases.players.roleplays import read_by_user_id as players_roleplays_read_by_user_id
-from databases.players.donates import read_by_user_id as players_donates_read_by_user_id
+from databases.players.roleplays import read_by_user_id as db_players_roleplays_read_by_user_id
+from databases.players.donates import read_by_user_id as db_players_donates_read_by_user_id
 
 from datetime import datetime
 
@@ -25,7 +25,7 @@ async def get_user_id(identifier):
         if str(identifier).startswith("@"):
             # @юзернейм.
             user_username = str(identifier).replace("@", "")
-            user_data = await players_nicknames_read_by_user_username(user_username)
+            user_data = await db_players_nicknames_read_by_user_username(user_username)
 
             if not user_data:
                 return None
@@ -34,7 +34,7 @@ async def get_user_id(identifier):
 
         else:
             # Майнкрафт-никнейм.
-            user_data = await players_nicknames_read_by_minecraft_nickname(identifier)
+            user_data = await db_players_nicknames_read_by_minecraft_nickname(identifier)
 
             if not user_data:
                 return None
@@ -80,7 +80,7 @@ async def is_bot(user_id: int) -> bool:
         return False
 
 
-async def get_reputation_as_list(
+async def get_reputation(
         user_id: int,
         return_int: bool = False, return_str: bool = False,
         return_with_user_id: int | None = None, return_without_user_id: int | None = None
@@ -95,7 +95,7 @@ async def get_reputation_as_list(
     Не конфликтует со своим "братом" по функционалу.
     '''
     try:
-        user_data = await players_roleplays_read_by_user_id(user_id)
+        user_data = await db_players_roleplays_read_by_user_id(user_id)
         if not user_data or len(user_data) < 6:
             if return_int:
                 return 0
@@ -150,18 +150,18 @@ async def get_reputation_as_list(
 
 async def get_full_data(user_id: int, without_donate: bool = False):
     '''
-    Получить все данные пользователя из всех таблиц БД `profiles`.
+    Получить все данные пользователя из всех таблиц БД `players`.
     * `without_donate` — не получать данные из таблицы `donates`?
     '''
     try:
-        nicknames_data = await players_nicknames_read_by_user_id(user_id)
+        nicknames_data = await db_players_nicknames_read_by_user_id(user_id)
         if not nicknames_data:
             return None
 
-        roleplays_data = await players_roleplays_read_by_user_id(user_id)
-        donates_data = await players_donates_read_by_user_id(user_id)
+        roleplays_data = await db_players_roleplays_read_by_user_id(user_id)
+        donates_data = await db_players_donates_read_by_user_id(user_id)
 
-        reputation = await get_reputation_as_list(user_id=user_id, return_int=True)
+        reputation = await get_reputation(user_id=user_id, return_int=True)
         user_user = await get_user_user(user_id)
 
         return {
