@@ -17,7 +17,7 @@ from aiomysql import connect, DictCursor, Error
 
 
 
-async def get_connection() -> connect:
+async def db_get_connection() -> connect:
     return await connect(
         db=NAME,
         host=HOST,
@@ -29,14 +29,20 @@ async def get_connection() -> connect:
     )
 
 
-async def create_database() -> None:
-    connection = await get_connection()
+async def db_create_database() -> None:
+    connection = await db_get_connection()
     try:
         async with connection.cursor() as db:
-            with open(DB_CONNECTS_SQL, 'r', encoding='utf-8') as file:
-                sql_script = file.read()
-            await db.execute(sql_script)
-            await connection.commit()
+            await db.execute("SHOW TABLES LIKE 'connects'")
+            result = await db.fetchone()
+
+            if not result:
+                with open(DB_CONNECTS_SQL, 'r', encoding='utf-8') as file:
+                    sql_script = file.read()
+                await db.execute(sql_script)
+                await connection.commit()
+            else:
+                pass
 
     except Exception as e:
         await print_error(f"databases/connects: create_database(): {e}.")
@@ -47,8 +53,8 @@ async def create_database() -> None:
         await connection.ensure_closed()
 
 
-async def create_user(user_id: int, minecraft_nickname: str, keyword: str) -> None:
-    connection = await get_connection()
+async def db_create_user(user_id: int, minecraft_nickname: str, keyword: str) -> None:
+    connection = await db_get_connection()
     try:
         async with connection.cursor() as db:
             await db.execute("""
@@ -69,8 +75,8 @@ async def create_user(user_id: int, minecraft_nickname: str, keyword: str) -> No
         connection.close()
         await connection.ensure_closed()
 
-async def delete_user(user_id: int) -> None:
-    connection = await get_connection()
+async def db_delete_user(user_id: int) -> None:
+    connection = await db_get_connection()
     try:
         async with connection.cursor() as db:
             await db.execute("DELETE FROM connects WHERE user_id = %s", (user_id,))
@@ -85,8 +91,8 @@ async def delete_user(user_id: int) -> None:
         await connection.ensure_closed()
 
 
-async def read_user(user_id: int):
-    connection = await get_connection()
+async def db_read_user(user_id: int):
+    connection = await db_get_connection()
     try:
         async with connection.cursor() as db:
             await db.execute("SELECT * FROM connects WHERE user_id = %s", (user_id,))

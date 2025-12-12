@@ -9,6 +9,7 @@ from app.data import report_data
 
 
 kb_start_menu = ReplyKeyboardMarkup(keyboard=[
+    # Клавиатура для handlers.py: cmd_start() . Навигатор, который всегда видно в ЛС.
     [KeyboardButton(text="👤 Профиль")],
     [KeyboardButton(text="🎩 Донат")]
 ],
@@ -16,6 +17,10 @@ resize_keyboard=True)
 
 
 async def kb_profile_connect(user_id: int) -> InlineKeyboardBuilder:
+    '''
+    *Клавиатура для `handlers.py`: `cmd_profile()`.*
+    Для человека, который ещё не привязал свой майнкрафт-никнейм к телеграм-аккаунту.
+    '''
     inline_keyboard = InlineKeyboardBuilder()
 
     inline_keyboard.add(InlineKeyboardButton(
@@ -26,6 +31,10 @@ async def kb_profile_connect(user_id: int) -> InlineKeyboardBuilder:
     return inline_keyboard.adjust(1).as_markup()
 
 async def kb_profile_connect_create_user(user_id: int) -> InlineKeyboardBuilder:
+    '''
+    *Клавиатура для `handlers.py`: `cmd_profile()`.*
+    Вызывается тогда, когда никнейм уже был введён, и ожидается, что игрок совершил подтверждение в игре.
+    '''
     inline_keyboard = InlineKeyboardBuilder()
 
     inline_keyboard.add(InlineKeyboardButton(
@@ -36,6 +45,10 @@ async def kb_profile_connect_create_user(user_id: int) -> InlineKeyboardBuilder:
     return inline_keyboard.adjust(1).as_markup()
 
 async def kb_profile_reputation(user_id: int, reputation_id: int) -> InlineKeyboardBuilder:
+    '''
+    *Клавиатура для `handlers.py`: `cmd_profile()`.*
+    Клавиатура для других людей, с помощью которой можно повышать или понижать репутацию того, с кем она связана.
+    '''
     inline_keyboard = InlineKeyboardBuilder()
 
     inline_keyboard.add(InlineKeyboardButton(
@@ -56,7 +69,7 @@ async def kb_profile_reputation(user_id: int, reputation_id: int) -> InlineKeybo
 
 async def kb_report_maingroup(report_id: int) -> InlineKeyboardBuilder:
     '''
-    *Клавиатура для `handlers.py`: `fcmd_report()`. Для админского чата.*  
+    *Клавиатура для `handlers.py`: `cmd_report()`. Устанавливается в публичном чате.*  
     '''
     inline_keyboard = InlineKeyboardBuilder()
 
@@ -82,7 +95,7 @@ async def kb_report_maingroup(report_id: int) -> InlineKeyboardBuilder:
 
 async def kb_report_admingroup(report_id: int) -> InlineKeyboardBuilder:
     '''
-    *Клавиатура для `handlers.py`: `fcmd_report()`. Для публичного чата.*  
+    *Клавиатура для `handlers.py`: `cmd_report()`. Устанавливается в админском чате.*  
     '''
     inline_keyboard = InlineKeyboardBuilder()
 

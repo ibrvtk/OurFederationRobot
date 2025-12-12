@@ -21,16 +21,16 @@ from app.keyboards import (
 )
 
 from databases.connects import (
-    create_user as db_connects_create_user,
-    delete_user as db_connects_delete_user,
-    read_user as db_connects_read_user
+    db_create_user as db_connects_create_user,
+    db_delete_user as db_connects_delete_user,
+    db_read_user as db_connects_read_user
 )
-from databases.players import create_user as db_players_create_user
+from databases.players import db_create_user as db_players_create_user
 from databases.players.nicknames import (
-    read_by_user_id as db_players_nicknames_read_by_user_id,
-    read_by_minecraft_nickname as db_players_nicknames_read_by_minecraft_nickname
+    db_read_by_user_id as db_players_nicknames_read_by_user_id,
+    db_read_by_minecraft_nickname as db_players_nicknames_read_by_minecraft_nickname
 )
-from databases.players.roleplays import update_reputation as db_players_roleplays_update_reputation
+from databases.players.roleplays import db_update_reputation as db_players_roleplays_update_reputation
 
 from datetime import datetime
 
@@ -41,7 +41,9 @@ rt = Router()
 
 @rt.callback_query(F.data.startswith("profile_connect"))
 async def cb_profile_connect(callback: CallbackQuery, state: FSMContext):
+    '''*(FSM)* Привязка майнкрафт-никнейма к телеграм-аккаунту.'''
     if callback.data.split("_")[2] == "create":
+        # (Без FSM) Если никнейм уже был введён, и ожидается, что игрок совершил подтверждение в игре.
         user_id = int(callback.data.split("_")[3])
         user_data = await db_connects_read_user(user_id)
 
@@ -73,6 +75,7 @@ async def cb_profile_connect(callback: CallbackQuery, state: FSMContext):
 
 @rt.message(ProfileConnect.minecraft_nickname)
 async def state_profile_connect(message: Message, state: FSMContext):
+    '''*(FSM)* Спрашиваем у человека его майнкрафт-никнейм.'''
     minecraft_nickname = message.text
     state_data = await state.get_data()
     user_id = int(state_data.get('user_id'))
@@ -141,6 +144,7 @@ async def state_profile_connect(message: Message, state: FSMContext):
 
 @rt.callback_query(F.data.startswith("profile_plusrep_"))
 async def cb_profile_plusrep(callback: CallbackQuery):
+    '''Повышение репутации.'''
     user_id = int(callback.data.split("_")[2])
     reputation_id = int(callback.data.split("_")[3])
 
@@ -209,6 +213,7 @@ async def cb_profile_plusrep(callback: CallbackQuery):
 
 @rt.callback_query(F.data == "profile_rep")
 async def cb_profile_rep(callback: CallbackQuery):
+    '''Объяснение, что такое репутация.'''
     await callback.answer(
         text=(
             "✨ Это репутация.\n"
@@ -222,6 +227,7 @@ async def cb_profile_rep(callback: CallbackQuery):
 
 @rt.callback_query(F.data.startswith("profile_minusrep_"))
 async def cb_profile_minusrep(callback: CallbackQuery):
+    '''Понижение репутации.'''
     user_id = int(callback.data.split("_")[2])
     reputation_id = int(callback.data.split("_")[3])
 
@@ -292,6 +298,7 @@ async def cb_profile_minusrep(callback: CallbackQuery):
 
 @rt.callback_query(F.data.startswith("report_check_"))
 async def cb_report_check(callback: CallbackQuery):
+    '''Жалоба закрыта.'''
     report_id = int(callback.data.split("_")[2])
     chat_id = report_data[report_id].chat_id
     reply_message_id = report_data[report_id].reply_message_id
@@ -336,6 +343,7 @@ async def cb_report_check(callback: CallbackQuery):
 
 @rt.callback_query(F.data.startswith("report_delete_"))
 async def cb_report_delete(callback: CallbackQuery):
+    '''Удаление сообщения, на которое была подана жалоба.'''
     report_id = int(callback.data.split("_")[2])
     chat_id = report_data[report_id].chat_id
     target_message_id = report_data[report_id].target_message_id

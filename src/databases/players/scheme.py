@@ -9,7 +9,7 @@ from aiosqlite import connect
 
 
 
-async def create_database() -> None:
+async def db_create_database() -> None:
     '''
     ## Создание БД `players`
     Хранит в себе три таблицы: `nicknames`, `roleplays` и `donates`.
@@ -46,7 +46,7 @@ async def create_database() -> None:
         await print_error(f"databases/players: createDatabase(): {e}.")
 
 
-async def create_user(user_id: int, minecraft_nickname: str, registration_date: datetime) -> None:
+async def db_create_user(user_id: int, minecraft_nickname: str, registration_date: datetime) -> None:
     '''Добавление человека в БД.'''
     user = await BOT.get_chat(user_id)
 
@@ -75,7 +75,7 @@ async def create_user(user_id: int, minecraft_nickname: str, registration_date: 
     except Exception as e:
         await print_error(f"databases/players: create_user(): {e}.")
 
-async def delete_user(user_id: int) -> None:
+async def db_delete_user(user_id: int) -> None:
     '''Удаление человека из БД.'''
     try:
         async with connect(DB_PLAYERS_DB) as db:

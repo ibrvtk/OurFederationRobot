@@ -6,7 +6,7 @@ from aiosqlite import connect
 
 
 # R
-async def read_by_user_id(user_id: int):
+async def db_read_by_user_id(user_id: int):
     '''
     Чтение всех данных человека, по его TG-ID.  
     Возвращает в виде списка `user_data`.  
@@ -22,7 +22,7 @@ async def read_by_user_id(user_id: int):
         await print_error(f"databases/players/nicknames.py: read_by_user_id(): {e}.")
         return None
 
-async def read_by_user_username(user_username: str):
+async def db_read_by_user_username(user_username: str):
     '''
     Чтение всех данных человека, по его @юзернейму.  
     Возвращает в виде списка `user_data`.  
@@ -38,7 +38,7 @@ async def read_by_user_username(user_username: str):
         await print_error(f"databases/players/nicknames.py: read_by_user_username(): {e}.")
         return None
 
-async def read_by_minecraft_nickname(minecraft_nickname: str):
+async def db_read_by_minecraft_nickname(minecraft_nickname: str):
     '''
     Чтение всех данных человека, по его никнейму в майнкрафте.  
     Возвращает в виде списка `user_data`.  
@@ -54,7 +54,7 @@ async def read_by_minecraft_nickname(minecraft_nickname: str):
         await print_error(f"databases/players/nicknames.py: read_by_minecraft_nickname(): {e}.")
         return None
 
-async def read_by_is_moderator(is_moderator: bool = True):
+async def db_read_by_is_moderator(is_moderator: bool = True):
     '''
     Чтение данных всех модераторов.  
     Возвращает в виде списка `users_data`.  
@@ -71,7 +71,7 @@ async def read_by_is_moderator(is_moderator: bool = True):
         await print_error(f"databases/players/nicknames.py: read_by_is_moderator(): {e}.")
         return None
 
-async def read_users():
+async def db_read_users():
     '''
     Чтение данных всех людей.  
     Возвращает в виде списка `users_data`.  
@@ -89,9 +89,9 @@ async def read_users():
 
 
 # U
-async def update_minecraft_nickname(user_id: int, minecraft_nickname: str) -> None:
+async def db_update_minecraft_nickname(user_id: int, minecraft_nickname: str) -> None:
     '''Обновление майнкрафт никнейма *(если человек его изменил)*.'''
-    user_data = await read_by_user_id(user_id)
+    user_data = await db_read_by_user_id(user_id)
     nickname_changes_count = user_data[4] + 1
 
     try:

@@ -2,12 +2,12 @@ from config import BOT
 from functions import print_error
 
 from databases.players.nicknames import (
-    read_by_user_id as db_players_nicknames_read_by_user_id,
-    read_by_user_username as db_players_nicknames_read_by_user_username,
-    read_by_minecraft_nickname as db_players_nicknames_read_by_minecraft_nickname
+    db_read_by_user_id as db_players_nicknames_read_by_user_id,
+    db_read_by_user_username as db_players_nicknames_read_by_user_username,
+    db_read_by_minecraft_nickname as db_players_nicknames_read_by_minecraft_nickname
 )
-from databases.players.roleplays import read_by_user_id as db_players_roleplays_read_by_user_id
-from databases.players.donates import read_by_user_id as db_players_donates_read_by_user_id
+from databases.players.roleplays import db_read_by_user_id as db_players_roleplays_read_by_user_id
+from databases.players.donates import db_read_by_user_id as db_players_donates_read_by_user_id
 
 from datetime import datetime
 

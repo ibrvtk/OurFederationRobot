@@ -9,8 +9,8 @@ from functions import print_error, print_other
 from app.handlers import rt as handlers_rt
 from app.callbacks import rt as callbacks_rt
 
-from databases.players import create_database as players_create_database
-from databases.connects import create_database as connects_create_database
+from databases.players import db_create_database as db_players_create_database
+from databases.connects import db_create_database as db_connects_create_database
 
 from asyncio import run#, create_task
 from aiohttp import ClientSession
@@ -25,20 +25,20 @@ async def main() -> None:
     session = ClientSession()
 
     try:
-        await players_create_database()
-        await connects_create_database()
+        await db_players_create_database()
+        await db_connects_create_database()
         DP.include_router(handlers_rt)
         DP.include_router(callbacks_rt)
-        await print_other("(i) Запуск бота: Все БД в порядке, роутеры подключены.")
+        await print_other("(i) (2/4) Запуск бота: Все БД в порядке, роутеры подключены.")
 
         start_message = await BOT.send_message(
             chat_id=ADMINGROUP_ID,
             text="✅"
         )
         await BOT.delete_message(ADMINGROUP_ID, start_message.message_id)
-        await print_other("(i) Запуск бота: Успешное соединение с Телеграмом.")
+        await print_other("(i) (3/4) Запуск бота: Успешное соединение с Телеграмом.")
 
-        await print_other("(V) Запуск бота: Успех.")
+        await print_other("(V) (4/4) Запуск бота: Успех.")
         await DP.start_polling(BOT)
 
     finally:
@@ -47,7 +47,7 @@ async def main() -> None:
 
 if __name__ == "__main__":
     try:
-        run(print_other(f"(+) Запуск бота: Начинаем."))
+        run(print_other(f"(+) (1/4) Запуск бота: Начинаем."))
         run(main())
 
     except Exception as e:
