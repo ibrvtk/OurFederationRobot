@@ -1,10 +1,10 @@
-src/app/webapp
-planlist.md
 src/functions/enigma.py
 
 .venv
 .env
 *pycache*
-testing/
+planlist.md
 
+# MySQL полностью попадает под .gitignore. На всякий пожарный.
 *.db
+src/databases/mysql

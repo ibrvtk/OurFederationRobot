@@ -20,7 +20,7 @@ from app.keyboards import (
     kb_profile_reputation
 )
 
-from databases.connects import (
+from databases.mysql.connects import (
     db_create_user as db_connects_create_user,
     db_delete_user as db_connects_delete_user,
     db_read_user as db_connects_read_user
@@ -47,7 +47,7 @@ async def cb_profile_connect(callback: CallbackQuery, state: FSMContext):
         user_id = int(callback.data.split("_")[3])
         user_data = await db_connects_read_user(user_id)
 
-        if user_data["keyword"] != "True":
+        if user_data and user_data["keyword"] and user_data["keyword"] != "True":
             await callback.answer(
                 text=(
                     "❌ Вы не ввели код\n"

@@ -54,6 +54,22 @@ async def db_read_by_minecraft_nickname(minecraft_nickname: str):
         await print_error(f"databases/players/nicknames.py: read_by_minecraft_nickname(): {e}.")
         return None
 
+async def db_read_user_id_by_minecraft_nickname(minecraft_nickname: str):
+    '''
+    Чтение TG-ID человека, по его никнейму в майнкрафте.  
+    Возвращает в виде `result`.  
+    Если данных нет, — возвращает `None`.
+    '''
+    try:
+        async with connect(DB_PLAYERS_DB) as db:
+            async with db.execute("SELECT user_id FROM nicknames WHERE minecraft_nickname = ?", (minecraft_nickname,)) as cursor:
+                result = await cursor.fetchone()
+                return result
+
+    except Exception as e:
+        await print_error(f"databases/players/nicknames.py: db_read_user_id_by_minecraft_nickname(): {e}.")
+        return None
+
 async def db_read_by_is_moderator(is_moderator: bool = True):
     '''
     Чтение данных всех модераторов.  
